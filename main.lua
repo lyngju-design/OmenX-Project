@@ -1,6 +1,6 @@
--- [[ OMEN X | FLUENT PREMIUM AUTOMATION INTERFACE ]]
--- Framework: Fluent UI Library (Next-Gen Windows 11 Aesthetic)
--- Optimization: High-Thread Efficiency, Micro-Yielding Arrays, Lightweight Callbacks
+-- [[ OMEN X | RAYFIELD PRODUCTION MATRIX ]]
+-- Framework: Rayfield UI Library
+-- Optimization: Strict Background Threading, Asynchronous Task Spawning, Memory Sanity
 -- Fully Integrated & Mobile Optimized Rewrite (2026 Stable Release)
 
 -- ============================================================================
@@ -48,10 +48,10 @@ local Lighting = game:GetService("Lighting")
 
 local CommF = ReplicatedStorage:WaitForChild("Remotes"):FindFirstChild("CommF_")
 
--- Clear previous interface containers safely
-for _, ui in pairs(game:GetService("CoreGui"):GetChildren()) do
-    if ui.Name == "Fluent" or ui.Name == "OmenX_Loader" then
-        ui:Destroy()
+-- Prevent duplicate UI instances
+for _, oldUi in pairs(game:GetService("CoreGui"):GetChildren()) do
+    if oldUi.Name == "Rayfield" or oldUi.Name == "OmenX_Loader" then
+        oldUi:Destroy()
     end
 end
 
@@ -64,11 +64,11 @@ LoaderGui.IgnoreGuiInset = true
 
 local MainFrame = Instance.new("Frame", LoaderGui)
 MainFrame.Size = UDim2.fromScale(1, 1)
-MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 
 local GlowLine = Instance.new("Frame", MainFrame)
-GlowLine.Size = UDim2.new(0, 0, 0, 3)
-GlowLine.BackgroundColor3 = Color3.fromRGB(0, 120, 212) -- Fluent Blue Accent
+GlowLine.Size = UDim2.new(0, 0, 0, 4)
+GlowLine.BackgroundColor3 = Color3.fromRGB(160, 32, 240)
 GlowLine.BorderSizePixel = 0
 
 local TitleLabel = Instance.new("TextLabel", MainFrame)
@@ -78,7 +78,7 @@ TitleLabel.AnchorPoint = Vector2.new(0.5, 0.5)
 TitleLabel.BackgroundTransparency = 1
 TitleLabel.Text = "OMEN X"
 TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.TextSize = 44
+TitleLabel.TextSize = 48
 TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 local StatusLabel = Instance.new("TextLabel", MainFrame)
@@ -86,12 +86,19 @@ StatusLabel.Size = UDim2.fromOffset(400, 30)
 StatusLabel.Position = UDim2.fromScale(0.5, 0.53)
 StatusLabel.AnchorPoint = Vector2.new(0.5, 0.5)
 StatusLabel.BackgroundTransparency = 1
-StatusLabel.Text = "Initializing Fluent UI Architecture... 0%"
+StatusLabel.Text = "Compiling Rayfield Matrix Core... 0%"
 StatusLabel.Font = Enum.Font.Gotham
-StatusLabel.TextSize = 14
-StatusLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+StatusLabel.TextSize = 16
+StatusLabel.TextColor3 = Color3.fromRGB(160, 32, 240)
 
 task.spawn(function()
-    TweenService:Create(GlowLine, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 3)}):Play()
+    TweenService:Create(GlowLine, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 4)}):Play()
     for i = 1, 100 do
-        task
+        task.wait(0.005)
+        if i == 25 then StatusLabel.Text = "Mapping Rayfield UI elements... 25%"
+        elseif i == 50 then StatusLabel.Text = "Isolating asynchronous threading arrays... 50%"
+        elseif i == 75 then StatusLabel.Text = "Hooking weapon strike remote tunnels... 75%"
+        elseif i == 100 then StatusLabel.Text = "SYSTEM READY! 100%"
+        end
+    end
+    task.wait(0.1
