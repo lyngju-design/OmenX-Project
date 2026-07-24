@@ -1,257 +1,477 @@
--------------------------------------------------------------------------------
---! 1. PLATOBOOST CORE ENGINE & CRYPTOGRAPHY 
--------------------------------------------------------------------------------
-local a=2^32;local b=a-1;local function c(d,e)local f,g=0,1;while d~=0 or e~=0 do local h,i=d%2,e%2;local j=(h+i)%2;f=f+j*g;d=math.floor(d/2)e=math.floor(e/2)g=g*2 end;return f%a end;local function k(d,e,l,...)local m;if e then d=d%a;e=e%a;m=c(d,e)if l then m=k(m,l,...)end;return m elseif d then return d%a else return 0 end end;local function n(d,e,l,...)local m;if e then d=d%a;e=e%a;m=(d+e-c(d,e))/2;if l then m=n(m,l,...)end;return m elseif d then return d%a else return b end end;local function o(p)return b-p end;local function q(d,r)if r<0 then return lshift(d,-r)end;return math.floor(d%2^32/2^r)end;local function s(p,r)if r>31 or r<-31 then return 0 end;return q(p%a,r)end;local function lshift(d,r)if r<0 then return s(d,-r)end;return d*2^r%2^32 end;local function t(p,r)p=p%a;r=r%32;local u=n(p,2^r-1)return s(p,r)+lshift(u,32-r)end;local v={0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2}local function w(x)return string.gsub(x,".",function(l)return string.format("%02x",string.byte(l))end)end;local function y(z,A)local x=""for B=1,A do local C=z%256;x=string.char(C)..x;z=(z-C)/256 end;return x end;local function D(x,B)local A=0;for B=B,B+3 do A=A*256+string.byte(x,B)end;return A end;local function E(F,G)local H=64-(G+9)%64;G=y(8*G,8)F=F.."\128"..string.rep("\0",H)..G;assert(#F%64==0)return F end;local function I(J)J[1]=0x6a09e667;J[2]=0xbb67ae85;J[3]=0x3c6ef372;J[4]=0xa54ff53a;J[5]=0x510e527f;J[6]=0x9b05688c;J[7]=0x1f83d9ab;J[8]=0x5be0cd19;return J end;local function K(F,B,J)local L={}for M=1,16 do L[M]=D(F,B+(M-1)*4)end;for M=17,64 do local N=L[M-15]local O=k(t(N,7),t(N,18),s(N,3))N=L[M-2]L[M]=(L[M-16]+O+L[M-7]+k(t(N,17),t(N,19),s(N,10)))%a end;local d,e,l,P,Q,R,S,T=J[1],J[2],J[3],J[4],J[5],J[6],J[7],J[8]for B=1,64 do local O=k(t(d,2),t(d,13),t(d,22))local U=k(n(d,e),n(d,l),n(e,l))local V=(O+U)%a;local W=k(t(Q,6),t(Q,11),t(Q,25))local X=k(n(Q,R),n(o(Q),S))local Y=(T+W+X+v[B]+L[B])%a;T=S;S=R;R=Q;Q=(P+Y)%a;P=l;l=e;e=d;d=(Y+V)%a end;J[1]=(J[1]+d)%a;J[2]=(J[2]+e)%a;J[3]=(J[3]+l)%a;J[4]=(J[4]+P)%a;J[5]=(J[5]+Q)%a;J[6]=(J[6]+R)%a;J[7]=(J[7]+S)%a;J[8]=(J[8]+T)%a end;local function Z(F)F=E(F,#F)local J=I({})for B=1,#F,64 do K(F,B,J)end;return w(y(J[1],4)..y(J[2],4)..y(J[3],4)..y(J[4],4)..y(J[5],4)..y(J[6],4)..y(J[7],4)..y(J[8],4))end;local e;local l={["\\"]="\\",["\""]="\"",["\b"]="b",["\f"]="f",["\n"]="n",["\r"]="r",["\t"]="t"}local P={["/"]="/"}for Q,R in pairs(l)do P[R]=Q end;local S=function(T)return"\\"..(l[T]or string.format("u%04x",T:byte()))end;local B=function(M)return"null"end;local v=function(M,z)local _={}z=z or{}if z[M]then error("circular reference")end;z[M]=true;if rawget(M,1)~=nil or next(M)==nil then local A=0;for Q in pairs(M)do if type(Q)~="number"then error("invalid table: mixed or invalid key types")end;A=A+1 end;if A~=#M then error("invalid table: sparse array")end;for a0,R in ipairs(M)do table.insert(_,e(R,z))end;z[M]=nil;return"["..table.concat(_,",").."]"else for Q,R in pairs(M)do if type(Q)~="string"then error("invalid table: mixed or invalid key types")end;table.insert(_,e(Q,z)..":"..e(R,z))end;z[M]=nil;return"{"..table.concat(_,",").."}"end end;local g=function(M)return'"'..M:gsub('[%z\1-\31\\"]',S)..'"'end;local a1=function(M)if M~=M or M<=-math.huge or M>=math.huge then error("unexpected number value '"..tostring(M).."'")end;return string.format("%.14g",M)end;local j={["nil"]=B,["table"]=v,["string"]=g,["number"]=a1,["boolean"]=tostring}e=function(M,z)local x=type(M)local a2=j[x]if a2 then return a2(M,z)end;error("unexpected type '"..x.."'")end;local a3=function(M)return e(M)end;local a4;local N=function(...)local _={}for a0=1,select("#",...)do _[select(a0,...)]=true end;return _ end;local L=N(" ","\t","\r","\n")local p=N(" ","\t","\r","\n","]","}",",")local a5=N("\\","/",'"',"b","f","n","r","t","u")local m=N("true","false","null")local a6={["true"]=true,["false"]=false,["null"]=nil}local a7=function(a8,a9,aa,ab)for a0=a9,#a8 do if aa[a8:sub(a0,a0)]~=ab then return a0 end end;return#a8+1 end;local ac=function(a8,a9,J)local ad=1;local ae=1;for a0=1,a9-1 do ae=ae+1;if a8:sub(a0,a0)=="\n"then ad=ad+1;ae=1 end end;error(string.format("%s at line %d col %d",J,ad,ae))end;local af=function(A)local a2=math.floor;if A<=0x7f then return string.char(A)elseif A<=0x7ff then return string.char(a2(A/64)+192,A%64+128)elseif A<=0xffff then return string.char(a2(A/4096)+224,a2(A%4096/64)+128,A%64+128)elseif A<=0x10ffff then return string.char(a2(A/262144)+240,a2(A%262144/4096)+128,a2(A%4096/64)+128,A%64+128)end;error(string.format("invalid unicode codepoint '%x'",A))end;local ag=function(ah)local ai=tonumber(ah:sub(1,4),16)local aj=tonumber(ah:sub(7,10),16)if aj then return af((ai-0xd800)*0x400+aj-0xdc00+0x10000)else return af(ai)end end;local ak=function(a8,a0)local _=""local al=a0+1;local Q=al;while al<=#a8 do local am=a8:byte(al)if am<32 then ac(a8,al,"control character in string")elseif am==92 then _=_..a8:sub(Q,al-1)al=al+1;local T=a8:sub(al,al)if T=="u"then local an=a8:match("^[dD][89aAbB]%x%x\\u%x%x%x%x",al+1)or a8:match("^%x%x%x%x",al+1)or ac(a8,al-1,"invalid unicode escape in string")_=_..ag(an)al=al+#an else if not a5[T]then ac(a8,al-1,"invalid escape char '"..T.."' in string")end;_=_..P[T]end;Q=al+1 elseif am==34 then _=_..a8:sub(Q,al-1)return _,al+1 end;al=al+1 end;ac(a8,a0,"expected closing quote for string")end;local ao=function(a8,a0)local am=a7(a8,a0,p)local ah=a8:sub(a0,am-1)local A=tonumber(ah)if not A then ac(a8,a0,"invalid number '"..ah.."'")end;return A,am end;local ap=function(a8,a0)local am=a7(a8,a0,p)local aq=a8:sub(a0,am-1)if not m[aq]then ac(a8,a0,"invalid literal '"..aq.."'")end;return a6[aq],am end;local ar=function(a8,a0)local _={}local A=1;a0=a0+1;while 1 do local am;a0=a7(a8,a0,L,true)if a8:sub(a0,a0)=="]"then a0=a0+1;break end;am,a0=a4(a8,a0)_[A]=am;A=A+1;a0=a7(a8,a0,L,true)local as=a8:sub(a0,a0)a0=a0+1;if as=="]"then break end;if as~=","then ac(a8,a0,"expected ']' or ','")end end;return _,a0 end;local at=function(a8,a0)local _={}a0=a0+1;while 1 do local au,M;a0=a7(a8,a0,L,true)if a8:sub(a0,a0)=="}"then a0=a0+1;break end;if a8:sub(a0,a0)~='"'then ac(a8,a0,"expected string for key")end;au,a0=a4(a8,a0)a0=a7(a8,a0,L,true)if a8:sub(a0,a0)~=":"then ac(a8,a0,"expected ':' after key")end;a0=a7(a8,a0+1,L,true)M,a0=a4(a8,a0)_[au]=M;a0=a7(a8,a0,L,true)local as=a8:sub(a0,a0)a0=a0+1;if as=="}"then break end;if as~=","then ac(a8,a0,"expected '}' or ','")end end;return _,a0 end;local av={['"']=ak,["0"]=ao,["1"]=ao,["2"]=ao,["3"]=ao,["4"]=ao,["5"]=ao,["6"]=ao,["7"]=ao,["8"]=ao,["9"]=ao,["-"]=ao,["t"]=ap,["f"]=ap,["n"]=ap,["["]=ar,["{"]=at}a4=function(a8,a9)local as=a8:sub(a9,a9)local a2=av[as]if a2 then return a2(a8,a9)end;ac(a8,a9,"unexpected character '"..as.."'")end;local aw=function(a8)if type(a8)~="string"then error("expected argument of type string, got "..type(a8))end;local _,a9=a4(a8,a7(a8,1,L,true))a9=a7(a8,a9,L,true)if a9<=#a8 then ac(a8,a9,"trailing garbage")end;return _ end;
-local lEncode, lDecode, lDigest = a3, aw, Z;
+--[[
+	DevAdminPanel.client.lua
+	------------------------------------------------------------
+	Local development testing tool for Roblox Studio.
+	Provides a ScreenGui with a toggleable panel and buttons that
+	each call into a small "module" of debug functions.
 
-local service = 26843; 
-local secret = "7d6e2ffd-1b48-4dda-bb6e-6b33fe9f610e"; 
-local useNonce = true; 
+	NOTE: This is a LOCAL testing tool only. It manipulates the
+	client's own character (BodyVelocity/AssemblyLinearVelocity,
+	CFrame, WalkSpeed, etc). It does NOT give server-authoritative
+	admin powers, and should be stripped out / gated behind
+	RunService:IsStudio() or a whitelist before shipping.
+------------------------------------------------------------
+]]
 
-local onMessage = function(message) end;
-repeat task.wait(1) until game:IsLoaded();
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TextChatService = game:GetService("TextChatService")
 
-local requestSending = false;
-local fSetClipboard, fRequest, fStringChar, fToString, fStringSub, fOsTime, fMathRandom, fMathFloor, fGetHwid = setclipboard or toclipboard, request or http_request or syn_request, string.char, tostring, string.sub, os.time, math.random, math.floor, gethwid or function() return game:GetService("Players").LocalPlayer.UserId end
-local cachedLink, cachedTime = "", 0;
+local LocalPlayer = Players.LocalPlayer
 
-local host = "https://api.platoboost.com";
-local hostResponse = fRequest({ Url = host .. "/public/connectivity", Method = "GET" });
-if hostResponse.StatusCode ~= 200 or hostResponse.StatusCode ~= 429 then host = "https://api.platoboost.net" end
-
-function cacheLink()
-    if cachedTime + (10*60) < fOsTime() then
-        local response = fRequest({
-            Url = host .. "/public/start", Method = "POST",
-            Body = lEncode({ service = service, identifier = lDigest(fGetHwid()) }),
-            Headers = { ["Content-Type"] = "application/json" }
-        });
-        if response.StatusCode == 200 then
-            local decoded = lDecode(response.Body);
-            if decoded.success == true then cachedLink = decoded.data.url; cachedTime = fOsTime(); return true, cachedLink; else onMessage(decoded.message); return false, decoded.message; end
-        elseif response.StatusCode == 429 then local msg = "you are being rate limited, please wait 20 seconds and try again."; onMessage(msg); return false, msg; end
-        local msg = "Failed to cache link."; onMessage(msg); return false, msg;
-    else return true, cachedLink; end
-end
-cacheLink();
-
-local generateNonce = function()
-    local str = ""
-    for _ = 1, 16 do str = str .. fStringChar(fMathFloor(fMathRandom() * (122 - 97 + 1)) + 97) end
-    return str
-end
-for _ = 1, 5 do local oNonce = generateNonce(); task.wait(0.2) if generateNonce() == oNonce then local msg = "platoboost nonce error."; onMessage(msg); error(msg) end end
-
-local copyLink = function() local success, link = cacheLink(); if success then fSetClipboard(link) end end
-
-local redeemKey = function(key)
-    local nonce = generateNonce(); local endpoint = host .. "/public/redeem/" .. fToString(service);
-    local body = { identifier = lDigest(fGetHwid()), key = key }
-    if useNonce then body.nonce = nonce end
-    local response = fRequest({ Url = endpoint, Method = "POST", Body = lEncode(body), Headers = { ["Content-Type"] = "application/json" } });
-    if response.StatusCode == 200 then
-        local decoded = lDecode(response.Body);
-        if decoded.success == true then
-            if decoded.data.valid == true then
-                if useNonce then if decoded.data.hash == lDigest("true" .. "-" .. nonce .. "-" .. secret) then return true else onMessage("failed to verify integrity."); return false end else return true end
-            else onMessage("key is invalid."); return false end
-        else if fStringSub(decoded.message, 1, 27) == "unique constraint violation" then onMessage("you already have an active key, please wait for it to expire before redeeming it."); return false else onMessage(decoded.message); return false end end
-    elseif response.StatusCode == 429 then onMessage("you are being rate limited, please wait 20 seconds and try again."); return false else onMessage("server returned an invalid status code, please try again later."); return false end
+-- Safety: only allow this tool to run in Studio, or extend this
+-- check with your own whitelist logic for a dev-only server.
+if not RunService:IsStudio() then
+	warn("[DevAdminPanel] Disabled outside of Studio.")
+	return
 end
 
-local verifyKey = function(key)
-    if requestSending == true then onMessage("a request is already being sent, please slow down."); return false else requestSending = true end
-    local nonce = generateNonce(); local endpoint = host .. "/public/whitelist/" .. fToString(service) .. "?identifier=" .. lDigest(fGetHwid()) .. "&key=" .. key;
-    if useNonce then endpoint = endpoint .. "&nonce=" .. nonce end
-    local response = fRequest({ Url = endpoint, Method = "GET" }); requestSending = false;
-    if response.StatusCode == 200 then
-        local decoded = lDecode(response.Body);
-        if decoded.success == true then
-            if decoded.data.valid == true then
-                if useNonce then if decoded.data.hash == lDigest("true" .. "-" .. nonce .. "-" .. secret) then return true else onMessage("failed to verify integrity."); return false end else return true end
-            else if fStringSub(key, 1, 4) == "KEY_" then return redeemKey(key) else onMessage("key is invalid."); return false end end
-        else onMessage(decoded.message); return false end
-    elseif response.StatusCode == 429 then onMessage("you are being rate limited, please wait 20 seconds and try again."); return false else onMessage("server returned an invalid status code, please try again later."); return false end
+--------------------------------------------------------------
+-- Helper: get the current character + humanoid safely
+--------------------------------------------------------------
+local function getCharacter()
+	local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	local humanoid = character:WaitForChild("Humanoid")
+	local rootPart = character:WaitForChild("HumanoidRootPart")
+	return character, humanoid, rootPart
 end
 
--------------------------------------------------------------------------------
--- 2. PREMIUM FRONT-END INTRO / BOOT PANEL
--------------------------------------------------------------------------------
-local OmenXIcon = "rbxassetid://123714660781098"
-local TweenService = game:GetService("TweenService")
-local CoreGui = game:GetService("CoreGui")
+--------------------------------------------------------------
+-- 7. Dev chat announcement function (TextChatService)
+-- Broadcasts local test logs to the chat window (client-side only)
+--------------------------------------------------------------
+local DevChat = {}
 
-local IntroGui = Instance.new("ScreenGui")
-IntroGui.Name = "OmenX_Boot"
-IntroGui.Parent = CoreGui
+function DevChat.Log(message: string)
+	local generalChannel = TextChatService.TextChannels:FindFirstChild("RBXGeneral")
+	local tag = "[DEV LOG] "
 
-local MainPanel = Instance.new("Frame")
-MainPanel.Size = UDim2.new(0, 420, 0, 280)
-MainPanel.Position = UDim2.new(0.5, -210, 0.5, -140)
-MainPanel.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
-MainPanel.BorderSizePixel = 0
-MainPanel.ClipsDescendants = true
-MainPanel.Parent = IntroGui
-
-local PanelCorner = Instance.new("UICorner")
-PanelCorner.CornerRadius = UDim.new(0, 14)
-PanelCorner.Parent = MainPanel
-
-local GlowBorder = Instance.new("Frame")
-GlowBorder.Size = UDim2.new(1, 0, 0, 2)
-GlowBorder.Position = UDim2.new(0, 0, 0, 0)
-GlowBorder.BackgroundColor3 = Color3.fromRGB(255, 150, 20)
-GlowBorder.BorderSizePixel = 0
-GlowBorder.Parent = MainPanel
-
-local LogoImage = Instance.new("ImageLabel")
-LogoImage.Size = UDim2.new(0, 65, 0, 65)
-LogoImage.Position = UDim2.new(0.5, -32, 0, 25)
-LogoImage.BackgroundTransparency = 1
-LogoImage.Image = OmenXIcon
-LogoImage.Parent = MainPanel
-
-local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Size = UDim2.new(1, 0, 0, 40)
-TitleLabel.Position = UDim2.new(0, 0, 0, 95)
-TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "OMENX HUB"
-TitleLabel.TextColor3 = Color3.fromRGB(255, 185, 40)
-TitleLabel.TextSize = 28
-TitleLabel.Font = Enum.Font.FredokaOne
-TitleLabel.Parent = MainPanel
-
-local StatusLabel = Instance.new("TextLabel")
-StatusLabel.Size = UDim2.new(0, 360, 0, 35)
-StatusLabel.Position = UDim2.new(0.5, -180, 0, 135)
-StatusLabel.BackgroundTransparency = 1
-StatusLabel.Text = "Connecting to Platoboost API infrastructure..."
-StatusLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
-StatusLabel.TextSize = 13
-StatusLabel.Font = Enum.Font.SourceSansPro
-StatusLabel.TextWrapped = true
-StatusLabel.Parent = MainPanel
-
-onMessage = function(message)
-    if StatusLabel then StatusLabel.Text = message StatusLabel.TextColor3 = Color3.fromRGB(255, 75, 75) end
+	if generalChannel then
+		-- DisplaySystemMessage shows a local-only message (not sent to other clients)
+		generalChannel:DisplaySystemMessage(tag .. message)
+	else
+		-- Fallback if TextChatService channels aren't set up
+		print(tag .. message)
+	end
 end
 
-local LoadingBg = Instance.new("Frame")
-LoadingBg.Size = UDim2.new(0, 280, 0, 4)
-LoadingBg.Position = UDim2.new(0.5, -140, 0, 185)
-LoadingBg.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-LoadingBg.BorderSizePixel = 0
-LoadingBg.Parent = MainPanel
+--------------------------------------------------------------
+-- 1. Fly Mode (BodyVelocity / AssemblyLinearVelocity)
+--------------------------------------------------------------
+local FlyMode = {}
+FlyMode.Enabled = false
 
-local BarCorner = Instance.new("UICorner")
-BarCorner.CornerRadius = UDim.new(0, 2)
-BarCorner.Parent = LoadingBg
+local flyVelocity: LinearVelocity? = nil
+local flyAttachment: Attachment? = nil
+local flyConnection: RBXScriptConnection? = nil
+local flySpeed = 50
 
-local LoadingBar = Instance.new("Frame")
-LoadingBar.Size = UDim2.new(0, 0, 1, 0)
-LoadingBar.BackgroundColor3 = Color3.fromRGB(255, 150, 20)
-LoadingBar.BorderSizePixel = 0
-LoadingBar.Parent = LoadingBg
+function FlyMode.Toggle()
+	FlyMode.Enabled = not FlyMode.Enabled
+	local character, humanoid, rootPart = getCharacter()
 
-local BarCorner2 = Instance.new("UICorner")
-BarCorner2.CornerRadius = UDim.new(0, 2)
-BarCorner2.Parent = LoadingBar
+	if FlyMode.Enabled then
+		humanoid.PlatformStand = false
+		humanoid:ChangeState(Enum.HumanoidStateType.Physics)
 
-local KeyInput = Instance.new("TextBox")
-KeyInput.Size = UDim2.new(0, 320, 0, 36)
-KeyInput.Position = UDim2.new(0.5, -160, 0, 175)
-KeyInput.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-KeyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-KeyInput.PlaceholderText = "Paste Platoboost Access Key Here..."
-KeyInput.PlaceholderColor3 = Color3.fromRGB(90, 90, 90)
-KeyInput.Text = ""
-KeyInput.TextSize = 14
-KeyInput.Font = Enum.Font.SourceSansPro
-KeyInput.Visible = false
-KeyInput.Parent = MainPanel
+		-- Use a LinearVelocity constraint (modern replacement for BodyVelocity)
+		flyAttachment = Instance.new("Attachment")
+		flyAttachment.Parent = rootPart
 
-local InputCorner = Instance.new("UICorner")
-InputCorner.CornerRadius = UDim.new(0, 6)
-InputCorner.Parent = KeyInput
+		flyVelocity = Instance.new("LinearVelocity")
+		flyVelocity.Attachment0 = flyAttachment
+		flyVelocity.MaxForce = math.huge
+		flyVelocity.VectorVelocity = Vector3.new(0, 0, 0)
+		flyVelocity.Parent = rootPart
 
-local VerifyBtn = Instance.new("TextButton")
-VerifyBtn.Size = UDim2.new(0, 155, 0, 36)
-VerifyBtn.Position = UDim2.new(0.5, -160, 0, 222)
-VerifyBtn.BackgroundColor3 = Color3.fromRGB(255, 150, 20)
-VerifyBtn.Text = "Verify License"
-VerifyBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
-VerifyBtn.TextSize = 14
-VerifyBtn.Font = Enum.Font.SourceSansProBold
-VerifyBtn.Visible = false
-VerifyBtn.Parent = MainPanel
+		flyConnection = RunService.RenderStepped:Connect(function()
+			local camera = workspace.CurrentCamera
+			local moveDir = Vector3.new()
 
-local BtnCorner = Instance.new("UICorner")
-BtnCorner.CornerRadius = UDim.new(0, 6)
-BtnCorner.Parent = VerifyBtn
+			-- Basic WASD + Space/Shift fly controls
+			if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+				moveDir += camera.CFrame.LookVector
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+				moveDir -= camera.CFrame.LookVector
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+				moveDir -= camera.CFrame.RightVector
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+				moveDir += camera.CFrame.RightVector
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+				moveDir += Vector3.new(0, 1, 0)
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+				moveDir -= Vector3.new(0, 1, 0)
+			end
 
-local GetKeyBtn = Instance.new("TextButton")
-GetKeyBtn.Size = UDim2.new(0, 155, 0, 36)
-GetKeyBtn.Position = UDim2.new(0.5, 5, 0, 222)
-GetKeyBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-GetKeyBtn.Text = "Get Key Link"
-GetKeyBtn.TextColor3 = Color3.fromRGB(240, 240, 240)
-GetKeyBtn.TextSize = 14
-GetKeyBtn.Font = Enum.Font.SourceSansProBold
-GetKeyBtn.Visible = false
-GetKeyBtn.Parent = MainPanel
+			if moveDir.Magnitude > 0 then
+				moveDir = moveDir.Unit
+			end
 
-local BtnCorner2 = Instance.new("UICorner")
-BtnCorner2.CornerRadius = UDim.new(0, 6)
-BtnCorner2.Parent = GetKeyBtn
+			flyVelocity.VectorVelocity = moveDir * flySpeed
+		end)
 
-local function BootSystemSequence()
-    local barTween = TweenService:Create(LoadingBar, TweenInfo.new(2.0, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 1, 0)})
-    barTween:Play()
-    barTween.Completed:Wait()
-    task.wait(0.1)
-    StatusLabel.Text = "Authentication Required. Please secure an active whitelist key."
-    StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-    LoadingBg.Visible = false
-    KeyInput.Visible = true
-    VerifyBtn.Visible = true
-    GetKeyBtn.Visible = true
+		DevChat.Log("Fly mode ENABLED (WASD + Space/Shift, speed=" .. flySpeed .. ")")
+	else
+		if flyConnection then
+			flyConnection:Disconnect()
+			flyConnection = nil
+		end
+		if flyVelocity then
+			flyVelocity:Destroy()
+			flyVelocity = nil
+		end
+		if flyAttachment then
+			flyAttachment:Destroy()
+			flyAttachment = nil
+		end
+		humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+
+		DevChat.Log("Fly mode DISABLED")
+	end
 end
-task.spawn(BootSystemSequence)
 
-GetKeyBtn.MouseButton1Click:Connect(function()
-    StatusLabel.Text = "Retrieving gateway... Clipboard updated!"
-    StatusLabel.TextColor3 = Color3.fromRGB(255, 185, 40)
-    copyLink()
+--------------------------------------------------------------
+-- 2. Jump-height / state testing
+-- Lets you retrigger the jump/air state on demand for platformer testing
+--------------------------------------------------------------
+local JumpTester = {}
+
+function JumpTester.SetJumpPower(power: number)
+	local _, humanoid = getCharacter()
+	-- UseJumpPower must be true for JumpPower to take effect (vs JumpHeight)
+	humanoid.UseJumpPower = true
+	humanoid.JumpPower = power
+	DevChat.Log("JumpPower set to " .. power)
+end
+
+function JumpTester.SetJumpHeight(height: number)
+	local _, humanoid = getCharacter()
+	humanoid.UseJumpPower = false
+	humanoid.JumpHeight = height
+	DevChat.Log("JumpHeight set to " .. height)
+end
+
+-- Forces a fresh jump state even while airborne, useful for testing
+-- double-jump / air-control mechanics repeatedly without landing first
+function JumpTester.ForceJump()
+	local _, humanoid = getCharacter()
+	humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+	task.wait() -- allow state to register before re-triggering freefall physics
+	humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
+	DevChat.Log("Forced mid-air jump state trigger")
+end
+
+--------------------------------------------------------------
+-- 3. Character rotation test (CFrame updates)
+--------------------------------------------------------------
+local RotationTester = {}
+local rotationConnection: RBXScriptConnection? = nil
+RotationTester.Spinning = false
+
+function RotationTester.ToggleSpin(degreesPerSecond: number)
+	RotationTester.Spinning = not RotationTester.Spinning
+	local _, _, rootPart = getCharacter()
+
+	if RotationTester.Spinning then
+		rotationConnection = RunService.Heartbeat:Connect(function(dt)
+			local currentCFrame = rootPart.CFrame
+			-- Rotate around the world Y axis to test model orientation handling
+			rootPart.CFrame = currentCFrame * CFrame.Angles(0, math.rad(degreesPerSecond) * dt, 0)
+		end)
+		DevChat.Log("Rotation test ENABLED (" .. degreesPerSecond .. " deg/sec)")
+	else
+		if rotationConnection then
+			rotationConnection:Disconnect()
+			rotationConnection = nil
+		end
+		DevChat.Log("Rotation test DISABLED")
+	end
+end
+
+-- Snaps the character to a specific facing direction instantly
+function RotationTester.SnapTo(lookVector: Vector3)
+	local _, _, rootPart = getCharacter()
+	rootPart.CFrame = CFrame.lookAt(rootPart.Position, rootPart.Position + lookVector)
+	DevChat.Log("Character snapped to facing " .. tostring(lookVector))
+end
+
+--------------------------------------------------------------
+-- 4. Tool-animation test (plays a test AnimationTrack + checks distance)
+--------------------------------------------------------------
+local AnimTester = {}
+
+-- Replace with a real Animation asset id for your test rig
+local TEST_ANIMATION_ID = "rbxassetid://0000000000"
+
+function AnimTester.PlayTestAnimation(targetPart: BasePart?)
+	local character, humanoid = getCharacter()
+	local animator = humanoid:FindFirstChildOfClass("Animator")
+	if not animator then
+		animator = Instance.new("Animator")
+		animator.Parent = humanoid
+	end
+
+	local animation = Instance.new("Animation")
+	animation.AnimationId = TEST_ANIMATION_ID
+
+	local ok, track = pcall(function()
+		return animator:LoadAnimation(animation)
+	end)
+
+	if not ok or not track then
+		DevChat.Log("Failed to load test animation (check AnimationId)")
+		return
+	end
+
+	track:Play()
+	DevChat.Log("Playing test tool animation")
+
+	-- Example distance check: measure distance from root part to a target
+	-- part (e.g. a tool tip or interaction point) while animation plays
+	if targetPart then
+		local rootPart = character:WaitForChild("HumanoidRootPart")
+		local distance = (rootPart.Position - targetPart.Position).Magnitude
+		DevChat.Log(string.format("Distance to target part: %.2f studs", distance))
+	end
+
+	track.Stopped:Connect(function()
+		DevChat.Log("Test animation finished")
+	end)
+end
+
+--------------------------------------------------------------
+-- 5. Physics impulse test (directional velocity vectors)
+--------------------------------------------------------------
+local ImpulseTester = {}
+
+function ImpulseTester.ApplyImpulse(direction: Vector3, force: number)
+	local character, _, rootPart = getCharacter()
+
+	-- ApplyImpulse works directly on the assembly's linear velocity,
+	-- good for one-off physics debugging (knockback, launch pads, etc)
+	rootPart:ApplyImpulse(direction.Unit * force * rootPart.AssemblyMass)
+	DevChat.Log(string.format("Applied impulse dir=%s force=%d", tostring(direction), force))
+end
+
+-- Convenience presets for common debug launches
+function ImpulseTester.LaunchUp(force: number)
+	ImpulseTester.ApplyImpulse(Vector3.new(0, 1, 0), force or 50)
+end
+
+function ImpulseTester.LaunchForward(force: number)
+	local _, _, rootPart = getCharacter()
+	ImpulseTester.ApplyImpulse(rootPart.CFrame.LookVector, force or 50)
+end
+
+--------------------------------------------------------------
+-- 6. Gravity / environment override (custom movement states)
+--------------------------------------------------------------
+local GravityTester = {}
+local defaultGravity = workspace.Gravity
+
+function GravityTester.SetGravity(value: number)
+	workspace.Gravity = value
+	DevChat.Log("Workspace gravity set to " .. value)
+end
+
+function GravityTester.ResetGravity()
+	workspace.Gravity = defaultGravity
+	DevChat.Log("Workspace gravity reset to default (" .. defaultGravity .. ")")
+end
+
+-- Toggles a low-gravity "moon mode" for testing floaty movement states
+local lowGravityActive = false
+function GravityTester.ToggleLowGravity()
+	lowGravityActive = not lowGravityActive
+	if lowGravityActive then
+		GravityTester.SetGravity(defaultGravity * 0.2)
+	else
+		GravityTester.ResetGravity()
+	end
+end
+
+--------------------------------------------------------------
+-- 8. Local part transparency toggle (client-side rendering test)
+--------------------------------------------------------------
+local TransparencyTester = {}
+local transparencyOn = false
+
+function TransparencyTester.ToggleCharacterTransparency()
+	local character = getCharacter()
+	transparencyOn = not transparencyOn
+
+	for _, part in ipairs(character:GetDescendants()) do
+		if part:IsA("BasePart") then
+			-- LocalTransparencyModifier only affects this client's rendering,
+			-- it does not replicate or touch the real Transparency property
+			part.LocalTransparencyModifier = transparencyOn and 0.7 or 0
+		end
+	end
+
+	DevChat.Log("Character transparency test: " .. (transparencyOn and "ON" or "OFF"))
+end
+
+--------------------------------------------------------------
+-- 9. WalkSpeed / JumpPower profiling
+--------------------------------------------------------------
+local MovementProfiler = {}
+
+function MovementProfiler.SetWalkSpeed(speed: number)
+	local _, humanoid = getCharacter()
+	humanoid.WalkSpeed = speed
+	DevChat.Log("WalkSpeed set to " .. speed)
+end
+
+function MovementProfiler.SetJumpPower(power: number)
+	local _, humanoid = getCharacter()
+	humanoid.UseJumpPower = true
+	humanoid.JumpPower = power
+	DevChat.Log("JumpPower set to " .. power)
+end
+
+function MovementProfiler.ResetDefaults()
+	local _, humanoid = getCharacter()
+	humanoid.WalkSpeed = 16
+	humanoid.UseJumpPower = true
+	humanoid.JumpPower = 50
+	DevChat.Log("Movement profile reset to Roblox defaults")
+end
+
+--------------------------------------------------------------
+-- UI CONSTRUCTION
+--------------------------------------------------------------
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "DevAdminPanel"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Toggle button that shows/hides the main panel
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0, 120, 0, 36)
+toggleButton.Position = UDim2.new(0, 10, 0, 10)
+toggleButton.Text = "Dev Panel"
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.TextSize = 18
+toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Parent = screenGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 220, 0, 460)
+mainFrame.Position = UDim2.new(0, 10, 0, 54)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.Visible = false -- starts hidden, toggled by the button above
+mainFrame.Parent = screenGui
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.Padding = UDim.new(0, 6)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Parent = mainFrame
+
+local uiPadding = Instance.new("UIPadding")
+uiPadding.PadTop = UDim.new(0, 8)
+uiPadding.PadLeft = UDim.new(0, 8)
+uiPadding.PadRight = UDim.new(0, 8)
+uiPadding.Parent = mainFrame
+
+-- Toggle panel visibility
+toggleButton.MouseButton1Click:Connect(function()
+	mainFrame.Visible = not mainFrame.Visible
 end)
 
-local ExecutionClearance = false
-VerifyBtn.MouseButton1Click:Connect(function()
-    StatusLabel.Text = "Contacting master servers... Please wait."
-    StatusLabel.TextColor3 = Color3.fromRGB(140, 200, 255)
-    task.wait(0.4)
-    local ValidCheck = verifyKey(KeyInput.Text)
-    if ValidCheck then
-        StatusLabel.Text = "Access Authorized! Syncing panels..."
-        StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 130)
-        KeyInput.Visible = false VerifyBtn.Visible = false GetKeyBtn.Visible = false
-        task.wait(0.8)
-        local closeTween = TweenService:Create(MainPanel, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(0, 420, 0, 0), Position = UDim2.new(0.5, -210, 0.5, 0)})
-        closeTween:Play() closeTween.Completed:Wait() IntroGui:Destroy()
-        ExecutionClearance = true
-    end
+--------------------------------------------------------------
+-- Helper to spawn a labeled test button and wire it to a function
+--------------------------------------------------------------
+local function createButton(labelText: string, order: number, callback: () -> ())
+	local button = Instance.new("TextButton")
+	button.Name = labelText:gsub("%s+", "")
+	button.Size = UDim2.new(1, 0, 0, 34)
+	button.LayoutOrder = order
+	button.Text = labelText
+	button.Font = Enum.Font.SourceSans
+	button.TextSize = 16
+	button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	button.TextColor3 = Color3.fromRGB(255, 255, 255)
+	button.Parent = mainFrame
+
+	-- Each button's click event calls straight into its matching
+	-- debug module function above -- this is the "UI <-> logic" bridge
+	button.MouseButton1Click:Connect(callback)
+
+	return button
+end
+
+--------------------------------------------------------------
+-- Wire up buttons to each debug tool
+--------------------------------------------------------------
+
+-- 1. Fly Mode
+createButton("Toggle Fly Mode", 1, function()
+	FlyMode.Toggle()
 end)
 
-repeat task.wait() until ExecutionClearance
+-- 2. Jump Testing
+createButton("Force Mid-Air Jump", 2, function()
+	JumpTester.ForceJump()
+end)
+createButton("Set JumpPower 100", 3, function()
+	JumpTester.SetJumpPower(100)
+end)
 
--------------------------------------------------------------------------------
--- 3. INTERFACE PANEL RUNNER (15 TRUE-META 2026 GAMES)
--------------------------------------------------------------------------------
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+-- 3. Rotation Testing
+createButton("Toggle Spin Test", 4, function()
+	RotationTester.ToggleSpin(90) -- 90 degrees/sec
+end)
 
-local Window = Fluent:CreateWindow({
-    Title = "OmenX Hub Pro",
-    SubTitle = "Specialized Execution Modules",
-    TabWidth = 180,
-    Size = UDim2.fromOffset(600, 460),
-    Acrylic = true, 
-    Theme = "Dark",
+-- 4. Tool Animation Test
+createButton("Play Test Animation", 5, function()
+	AnimTester.PlayTestAnimation(workspace:FindFirstChild("TestTargetPart"))
+end)
+
+-- 5. Physics Impulse Test
+createButton("Launch Up", 6, function()
+	ImpulseTester.LaunchUp(60)
+end)
+createButton("Launch Forward", 7, function()
+	ImpulseTester.LaunchForward(60)
+end)
+
+-- 6. Gravity Override
+createButton("Toggle Low Gravity", 8, function()
+	GravityTester.ToggleLowGravity()
+end)
+createButton("Reset Gravity", 9, function()
+	GravityTester.ResetGravity()
+end)
+
+-- 7. Dev Chat Announcement (manual test log trigger)
+createButton("Send Test Log", 10, function()
+	DevChat.Log("Manual test log triggered at " .. os.clock())
+end)
+
+-- 8. Transparency Toggle
+createButton("Toggle Transparency", 11, function()
+	TransparencyTester.ToggleCharacterTransparency()
+end)
+
+-- 9. Movement Profiling
+createButton("WalkSpeed 50", 12, function()
+	MovementProfiler.SetWalkSpeed(50)
+end)
+createButton("Reset Movement", 13, function()
+	MovementProfiler.ResetDefaults()
+end)
+
+--------------------------------------------------------------
+-- Initial log so devs know the panel loaded correctly
+--------------------------------------------------------------
+DevChat.Log("DevAdminPanel loaded. Press 'Dev Panel' button to open.")
